@@ -1,0 +1,41 @@
+.controle-reprodutivo-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ded1b6;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Lexend', sans-serif;
+}
+
+h1, h2 {
+  color: #42282c;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #6d997a;
+}
+
+button {
+  background-color: #6ca19e;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #84abaa;
+}
+
+.message {
+  color: #42282c;
+  text-align: center;
+  margin-top: 20px;
+}

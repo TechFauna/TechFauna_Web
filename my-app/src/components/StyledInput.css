@@ -1,0 +1,30 @@
+/* components/StyledInput.css */
+.styled-input-container {
+    font-family: 'Lexend', sans-serif;
+    margin-bottom: 15px;
+    text-align: left;
+  }
+  
+  .styled-input-label {
+    display: block;
+    font-size: 1rem;
+    color: #42282c;
+    margin-bottom: 5px;
+  }
+  
+  .styled-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #42282c;
+    background-color: #f8f8f8;
+    transition: border-color 0.3s ease;
+  }
+  
+  .styled-input:focus {
+    outline: none;
+    border-color: #6ca19e;
+  }
+  

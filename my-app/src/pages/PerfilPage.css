@@ -1,0 +1,70 @@
+.perfil-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.upload-button {
+  background-color: #6ca19e;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  text-align: center;
+}
+
+.info-section {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.info-section label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #6ca19e;
+}
+
+.info-section input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.info-section button {
+  background-color: #6ca19e;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.info-section button:hover {
+  background-color: #84abaa;
+}
+
+.message {
+  color: #6ca19e;
+  margin-top: 10px;
+}

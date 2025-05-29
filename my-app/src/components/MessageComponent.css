@@ -1,0 +1,14 @@
+.message {
+    font-size: 1rem;
+    margin: 10px 0;
+    text-align: center;
+  }
+  
+  .message.success {
+    color: #6d997a;
+  }
+  
+  .message.error {
+    color: #ff4d4d;
+  }
+  

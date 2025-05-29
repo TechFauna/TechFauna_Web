@@ -1,0 +1,31 @@
+/* Sidebar.css */
+.sidebar {
+    background-color: #42282c;
+    width: 200px;
+    padding: 20px;
+    height: 100vh;
+  }
+  
+  .sidebar nav {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar nav a,
+  .sidebar nav button {
+    margin: 10px 0;
+    padding: 10px;
+    color: #42282c;
+    text-decoration: none;
+    background-color: #6ca19e;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .sidebar nav a:hover,
+  .sidebar nav button:hover {
+    background-color: #84abaa;
+  }
+  

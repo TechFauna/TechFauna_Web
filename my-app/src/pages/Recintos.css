@@ -1,0 +1,167 @@
+.recintos-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Lexend', sans-serif;
+  color: #333;
+  background-color: #f9f7f1;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.error-message, .success-message {
+  text-align: center;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: #e63946;
+}
+
+.success-message {
+  color: #38a169;
+}
+
+.create-recinto-form {
+  background-color: #ffffff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-recinto-form label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.create-recinto-form input[type="text"],
+.create-recinto-form input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.create-recinto-form input[type="text"]:focus,
+.create-recinto-form input[type="number"]:focus {
+  border-color: #6ca19e;
+  outline: none;
+}
+
+.create-recinto-form button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background-color: #6ca19e;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.create-recinto-form button:hover {
+  background-color: #5c8a7b;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0 20px;
+}
+
+.search-container input {
+  padding: 10px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.search-container input:focus {
+  border-color: #6ca19e;
+  outline: none;
+}
+
+.recintos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.recinto-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: #333;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recinto-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.recinto-card h3 {
+  color: #6ca19e;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.recinto-card p {
+  color: #555;
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.recinto-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.recinto-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.recinto-actions button:first-child {
+  background-color: #84abaa;
+  color: white;
+}
+
+.recinto-actions button:first-child:hover {
+  background-color: #6ca19e;
+}
+
+.recinto-actions button:last-child {
+  background-color: #f05454;
+  color: white;
+}
+
+.recinto-actions button:last-child:hover {
+  background-color: #d94343;
+}
