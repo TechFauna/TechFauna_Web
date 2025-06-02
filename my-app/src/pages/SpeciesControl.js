@@ -1,3 +1,4 @@
+// SpeciesControl.js
 import React, { useEffect, useState } from 'react';
 import supabase from '../supabaseCliente';
 import './SpeciesControl.css';
@@ -12,9 +13,9 @@ const SpeciesControl = ({ user }) => {
     size: '',
     recinto: '',
   });
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Carregar espécies do usuário logado
   useEffect(() => {
     const fetchSpecies = async () => {
       if (user?.id) {
@@ -34,7 +35,6 @@ const SpeciesControl = ({ user }) => {
     fetchSpecies();
   }, [user]);
 
-  // Carregar recintos do usuário logado
   useEffect(() => {
     const fetchRecintos = async () => {
       if (user?.id) {
@@ -54,11 +54,9 @@ const SpeciesControl = ({ user }) => {
     fetchRecintos();
   }, [user]);
 
-  // Adicionar uma nova espécie
-  const handleAddSpecies = async (e) => {
+  const handleSubmitSpecies = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     const { name, weight, sex, size, recinto } = newSpecies;
 
     if (!recinto) {
@@ -68,40 +66,75 @@ const SpeciesControl = ({ user }) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('species')
-        .insert([
-          {
+      if (editingId) {
+        const { data, error } = await supabase
+          .from('species')
+          .update({
             name,
             weight: parseFloat(weight),
             sex,
             size: parseFloat(size),
-            id_user: user.id,
             id_recinto: recinto,
-          },
-        ])
-        .select();
+          })
+          .eq('id', editingId)
+          .select();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      if (Array.isArray(data)) {
-        setSpecies((prev) => [...prev.filter((specie) => specie.id !== data[0].id), ...data]);
+        const updatedList = species.map((s) =>
+          s.id === editingId ? { ...s, name, weight, sex, size, id_recinto: recinto } : s
+        );
+        setSpecies(updatedList);
+
+        alert('Espécie atualizada com sucesso!');
+      } else {
+        const { data, error } = await supabase
+          .from('species')
+          .insert([
+            {
+              name,
+              weight: parseFloat(weight),
+              sex,
+              size: parseFloat(size),
+              id_user: user.id,
+              id_recinto: recinto,
+            },
+          ])
+          .select();
+
+        if (error) throw error;
+        if (Array.isArray(data)) {
+          setSpecies((prev) => [...prev.filter((s) => s.id !== data[0].id), ...data]);
+        }
+
+        alert('Espécie adicionada com sucesso!');
       }
 
       setNewSpecies({ name: '', weight: '', sex: '', size: '', recinto: '' });
-      alert('Espécie adicionada com sucesso!');
+      setEditingId(null);
     } catch (error) {
-      console.error('Erro ao adicionar espécie:', error);
-      alert('Erro ao adicionar espécie.');
+      console.error('Erro ao salvar espécie:', error);
+      alert('Erro ao salvar espécie.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleEdit = (specie) => {
+    setNewSpecies({
+      name: specie.name,
+      weight: specie.weight,
+      sex: specie.sex,
+      size: specie.size,
+      recinto: specie.id_recinto || '',
+    });
+    setEditingId(specie.id);
+  };
+
   return (
     <div className="species-control-container">
       <h1 className="page-title">Controle de Espécies</h1>
-      <form onSubmit={handleAddSpecies} className="species-form">
+      <form onSubmit={handleSubmitSpecies} className="species-form">
         <label>Nome:</label>
         <input
           type="text"
@@ -109,7 +142,6 @@ const SpeciesControl = ({ user }) => {
           onChange={(e) => setNewSpecies({ ...newSpecies, name: e.target.value })}
           required
         />
-
         <label>Peso (kg):</label>
         <input
           type="number"
@@ -117,7 +149,6 @@ const SpeciesControl = ({ user }) => {
           onChange={(e) => setNewSpecies({ ...newSpecies, weight: e.target.value })}
           required
         />
-
         <label>Sexo:</label>
         <select
           value={newSpecies.sex}
@@ -128,7 +159,6 @@ const SpeciesControl = ({ user }) => {
           <option value="M">Macho</option>
           <option value="F">Fêmea</option>
         </select>
-
         <label>Tamanho (cm):</label>
         <input
           type="number"
@@ -136,7 +166,6 @@ const SpeciesControl = ({ user }) => {
           onChange={(e) => setNewSpecies({ ...newSpecies, size: e.target.value })}
           required
         />
-
         <label>Recinto:</label>
         <select
           value={newSpecies.recinto}
@@ -150,9 +179,8 @@ const SpeciesControl = ({ user }) => {
             </option>
           ))}
         </select>
-
         <button type="submit" disabled={loading}>
-          {loading ? 'Adicionando...' : 'Adicionar Espécie'}
+          {loading ? 'Salvando...' : editingId ? 'Atualizar Espécie' : 'Adicionar Espécie'}
         </button>
       </form>
 
@@ -165,11 +193,11 @@ const SpeciesControl = ({ user }) => {
             <p>Sexo: {specie.sex}</p>
             <p>Tamanho: {specie.size} cm</p>
             <p>Recinto: {specie.recintos?.nome || 'Não atribuído'}</p>
+            <button onClick={() => handleEdit(specie)}>Editar</button>
           </div>
         ))}
       </div>
     </div>
   );
 };
-
 export default SpeciesControl;

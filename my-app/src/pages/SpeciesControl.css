@@ -1,3 +1,5 @@
+/* SpeciesControl.css */
+
 .species-card {
   background-color: #84abaa; /* Mantém a cor original dos cards */
   padding: 20px;
@@ -23,4 +25,20 @@
   background-color: #ffffff; /* Fundo branco */
   border-radius: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* botão de editar */
+.species-card button {
+  margin-top: 10px;
+  background-color: #ffffff;
+  color: #84abaa;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.species-card button:hover {
+  background-color: #e4f1f1;
 }
