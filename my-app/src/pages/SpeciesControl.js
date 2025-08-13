@@ -18,39 +18,25 @@ const SpeciesControl = ({ user }) => {
 
   useEffect(() => {
     const fetchSpecies = async () => {
-      if (user?.id) {
-        const { data, error } = await supabase
-          .from('species')
-          .select('*, recintos(nome)')
-          .eq('id_user', user.id);
-
-        if (error) {
-          console.error('Erro ao carregar espécies:', error);
-        } else if (Array.isArray(data)) {
-          setSpecies(data);
-        }
-      }
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('species')
+        .select('*, recintos(nome)')
+        .eq('id_user', user.id);
+      if (!error && Array.isArray(data)) setSpecies(data);
     };
-
     fetchSpecies();
   }, [user]);
 
   useEffect(() => {
     const fetchRecintos = async () => {
-      if (user?.id) {
-        const { data, error } = await supabase
-          .from('recintos')
-          .select('id_recinto, nome')
-          .eq('id_user', user.id);
-
-        if (error) {
-          console.error('Erro ao carregar recintos:', error);
-        } else {
-          setRecintos(data || []);
-        }
-      }
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('recintos')
+        .select('id_recinto, nome')
+        .eq('id_user', user.id);
+      if (!error) setRecintos(data || []);
     };
-
     fetchRecintos();
   }, [user]);
 
@@ -58,12 +44,7 @@ const SpeciesControl = ({ user }) => {
     e.preventDefault();
     setLoading(true);
     const { name, weight, sex, size, recinto } = newSpecies;
-
-    if (!recinto) {
-      alert('Por favor, selecione um recinto.');
-      setLoading(false);
-      return;
-    }
+    if (!recinto) { alert('Por favor, selecione um recinto.'); setLoading(false); return; }
 
     try {
       if (editingId) {
@@ -78,42 +59,31 @@ const SpeciesControl = ({ user }) => {
           })
           .eq('id', editingId)
           .select();
-
         if (error) throw error;
-
-        const updatedList = species.map((s) =>
-          s.id === editingId ? { ...s, name, weight, sex, size, id_recinto: recinto } : s
-        );
+        const updatedList = species.map((s) => s.id === editingId ? { ...s, name, weight, sex, size, id_recinto: recinto } : s);
         setSpecies(updatedList);
-
         alert('Espécie atualizada com sucesso!');
       } else {
         const { data, error } = await supabase
           .from('species')
-          .insert([
-            {
-              name,
-              weight: parseFloat(weight),
-              sex,
-              size: parseFloat(size),
-              id_user: user.id,
-              id_recinto: recinto,
-            },
-          ])
+          .insert([{
+            name,
+            weight: parseFloat(weight),
+            sex,
+            size: parseFloat(size),
+            id_user: user.id,
+            id_recinto: recinto,
+          }])
           .select();
-
         if (error) throw error;
-        if (Array.isArray(data)) {
-          setSpecies((prev) => [...prev.filter((s) => s.id !== data[0].id), ...data]);
-        }
-
+        if (Array.isArray(data)) setSpecies((prev) => [...prev, ...data]);
         alert('Espécie adicionada com sucesso!');
       }
 
       setNewSpecies({ name: '', weight: '', sex: '', size: '', recinto: '' });
       setEditingId(null);
-    } catch (error) {
-      console.error('Erro ao salvar espécie:', error);
+    } catch (err) {
+      console.error('Erro ao salvar espécie:', err);
       alert('Erro ao salvar espécie.');
     } finally {
       setLoading(false);
@@ -134,57 +104,73 @@ const SpeciesControl = ({ user }) => {
   return (
     <div className="species-control-container">
       <h1 className="page-title">Controle de Espécies</h1>
+
       <form onSubmit={handleSubmitSpecies} className="species-form">
-        <label>Nome:</label>
-        <input
-          type="text"
-          value={newSpecies.name}
-          onChange={(e) => setNewSpecies({ ...newSpecies, name: e.target.value })}
-          required
-        />
-        <label>Peso (kg):</label>
-        <input
-          type="number"
-          value={newSpecies.weight}
-          onChange={(e) => setNewSpecies({ ...newSpecies, weight: e.target.value })}
-          required
-        />
-        <label>Sexo:</label>
-        <select
-          value={newSpecies.sex}
-          onChange={(e) => setNewSpecies({ ...newSpecies, sex: e.target.value })}
-          required
-        >
-          <option value="">Selecione</option>
-          <option value="M">Macho</option>
-          <option value="F">Fêmea</option>
-        </select>
-        <label>Tamanho (cm):</label>
-        <input
-          type="number"
-          value={newSpecies.size}
-          onChange={(e) => setNewSpecies({ ...newSpecies, size: e.target.value })}
-          required
-        />
-        <label>Recinto:</label>
-        <select
-          value={newSpecies.recinto}
-          onChange={(e) => setNewSpecies({ ...newSpecies, recinto: e.target.value })}
-          required
-        >
-          <option value="">Selecione um recinto</option>
-          {recintos.map((recinto) => (
-            <option key={recinto.id_recinto} value={recinto.id_recinto}>
-              {recinto.nome}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label>Nome</label>
+          <input
+            type="text"
+            value={newSpecies.name}
+            onChange={(e) => setNewSpecies({ ...newSpecies, name: e.target.value })}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Peso (kg)</label>
+          <input
+            type="number"
+            value={newSpecies.weight}
+            onChange={(e) => setNewSpecies({ ...newSpecies, weight: e.target.value })}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Sexo</label>
+          <select
+            value={newSpecies.sex}
+            onChange={(e) => setNewSpecies({ ...newSpecies, sex: e.target.value })}
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="M">Macho</option>
+            <option value="F">Fêmea</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Tamanho (cm)</label>
+          <input
+            type="number"
+            value={newSpecies.size}
+            onChange={(e) => setNewSpecies({ ...newSpecies, size: e.target.value })}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Recinto</label>
+          <select
+            value={newSpecies.recinto}
+            onChange={(e) => setNewSpecies({ ...newSpecies, recinto: e.target.value })}
+            required
+          >
+            <option value="">Selecione um recinto</option>
+            {recintos.map((recinto) => (
+              <option key={recinto.id_recinto} value={recinto.id_recinto}>
+                {recinto.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button type="submit" disabled={loading}>
           {loading ? 'Salvando...' : editingId ? 'Atualizar Espécie' : 'Adicionar Espécie'}
         </button>
       </form>
 
-      <h2>Espécies Cadastradas</h2>
+      <h2 style={{maxWidth:980, margin:'0 auto 10px'}}>Espécies Cadastradas</h2>
       <div className="species-list">
         {species.map((specie) => (
           <div key={specie.id} className="species-card">
@@ -200,4 +186,5 @@ const SpeciesControl = ({ user }) => {
     </div>
   );
 };
+
 export default SpeciesControl;

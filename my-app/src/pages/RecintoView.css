@@ -1,33 +1,70 @@
-.recinto-view-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  .recinto-view-container h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  
-  .recinto-info,
-  .especie-info {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    text-align: center;
-    width: 100%;
-    max-width: 600px;
-  }
-  
-  .recinto-info p,
-  .especie-info p {
-    font-size: 1.2rem;
-    margin: 5px 0;
-    text-align: center;
-  }
-  
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap');
+
+:root{
+  --bg:#f6fbf8;
+  --panel:#ffffff;
+  --text:#0f1e16;
+  --muted:#5c7a68;
+  --primary:#16a34a;
+  --primary-700:#166534;
+  --border:#e6f0ea;
+  --danger:#b42318;
+  --success:#138e3d;
+  --shadow:0 10px 24px rgba(16,67,46,.10);
+}
+
+*{ box-sizing:border-box; font-family:'Lexend',sans-serif; }
+
+.recinto-view-container{
+  min-height:100vh;
+  background: var(--bg);
+  padding: 24px;
+}
+
+.recinto-card-form{
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow: var(--shadow);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 22px;
+}
+.recinto-card-form h1{
+  margin:0 0 14px;
+  font-size: clamp(20px,2.8vw,24px);
+}
+
+.recinto-form-grid{
+  display:grid;
+  grid-template-columns: 1fr 240px;
+  gap:14px;
+}
+.recinto-field label{
+  display:block;
+  margin:8px 0 6px;
+  font-weight:600;
+}
+.recinto-field input{
+  width:100%;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease;
+  background:#fff;
+}
+.recinto-field input:focus{
+  border-color:#bfe2c9;
+  box-shadow:0 0 0 4px rgba(22,163,74,.12);
+}
+
+.actions{
+  margin-top: 14px;
+  display:flex; gap:10px; justify-content:flex-end;
+}
+.btn{
+  padding:12px 16px; border:none; border-radius:10px; font-weight:700; cursor:pointer;
+}
+.btn-primary{ background:var(--primary); color:#fff; }
+.btn-primary:hover{ background:var(--primary-700); }

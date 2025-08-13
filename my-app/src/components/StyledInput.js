@@ -1,16 +1,16 @@
-// components/StyledInput.js
 import React from 'react';
 import './StyledInput.css';
 
-const StyledInput = ({ label, type = 'text', value, onChange, placeholder }) => (
+const StyledInput = ({ label, type = 'text', value, onChange, placeholder, ...props }) => (
   <div className="styled-input-container">
-    <label className="styled-input-label">{label}</label>
+    {label && <label className="styled-input-label">{label}</label>}
     <input
       className="styled-input"
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      {...props}
     />
   </div>
 );

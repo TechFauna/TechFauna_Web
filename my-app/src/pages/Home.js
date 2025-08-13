@@ -7,24 +7,25 @@ function Home() {
   return (
     <div className="home-container">
       <div className="content">
-        <h1>Bem-vindo à Fauna Tech</h1>
-        <p>Explore mais sobre o sistema e suas funcionalidades!</p>
+        <h1>TechFauna</h1>
+        <p>Gestão inteligente de criações animais — dashboards, controle reprodutivo e relatórios com foco em produtividade.</p>
+
         <div className="card-container">
           <FlipCard
-            title="Tecnologia e Fauna"
-            description="Explore como a tecnologia pode auxiliar na preservação e monitoramento da fauna ao redor do mundo."
+            title="Operação unificada"
+            description="Recintos, indivíduos e finanças em um só painel, com filtros e visão por período."
           />
           <FlipCard
-            title="Monitoramento Inteligente"
-            description="Utilizando sensores e IA, é possível acompanhar o comportamento animal e seu ambiente natural em tempo real."
+            title="Funciona offline"
+            description="Registro em campo com sincronização quando houver internet."
           />
           <FlipCard
-            title="Conservação com Dados"
-            description="Big Data e análises preditivas são utilizados para mapear áreas de risco e implementar ações de preservação."
+            title="Relatórios IBAMA"
+            description="Gere documentos oficiais com dados consistentes do sistema."
           />
           <FlipCard
-            title="Inovações Tecnológicas"
-            description="Robôs e drones estão sendo usados para coletar dados em locais inacessíveis, facilitando a preservação de espécies em extinção."
+            title="Insights rápidos"
+            description="Dashboards claros para decidir rápido e reduzir perdas."
           />
         </div>
       </div>

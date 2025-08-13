@@ -6,7 +6,6 @@ import './RecintoView.css';
 function RecintoView() {
   const { id } = useParams();
   const [recinto, setRecinto] = useState(null);
-  const [especieDetalhes, setEspecieDetalhes] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const handleUpdateRecinto = async () => {
@@ -17,7 +16,7 @@ function RecintoView() {
         qnt_animais: recinto.qnt_animais,
       })
       .eq('id_recinto', recinto.id_recinto);
-  
+
     if (error) {
       console.error('Erro ao atualizar recinto:', error);
       alert('Erro ao atualizar o recinto.');
@@ -26,68 +25,61 @@ function RecintoView() {
     }
   };
 
-
   useEffect(() => {
     const fetchRecinto = async () => {
       try {
-        const { data: recintoData, error: recintoError } = await supabase
+        const { data, error } = await supabase
           .from('recintos')
           .select('*')
           .eq('id_recinto', id)
           .single();
 
-        if (recintoError) {
-          console.error('Erro ao buscar recinto:', recintoError);
-        } else {
-          setRecinto(recintoData);
-
-          // Buscar informações da espécie associada
-          const { data: especieData, error: especieError } = await supabase
-            .from('species')
-            .select('*')
-            .eq('name', recintoData?.especie)
-            .single();
-
-          if (especieError) {
-            console.error('Erro ao buscar espécie:', especieError);
-          } else {
-            setEspecieDetalhes(especieData);
-          }
-        }
-      } catch (error) {
-        console.error('Erro inesperado ao buscar dados do recinto:', error);
+        if (error) throw error;
+        setRecinto(data);
+      } catch (err) {
+        console.error('Erro ao buscar recinto:', err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchRecinto();
   }, [id]);
 
-  if (loading) {
-    return <div>Carregando...</div>;
-  }
+  if (loading) return <div className="recinto-view-container">Carregando...</div>;
+  if (!recinto) return <div className="recinto-view-container">Recinto não encontrado.</div>;
 
-  if (!recinto) {
-    return <div>Erro ao carregar os dados do recinto. Tente novamente mais tarde.</div>;
-  }
-  
   return (
     <div className="recinto-view-container">
-      <h1>Editar Recinto</h1>
-      <input
-        type="text"
-        value={recinto.nome}
-        onChange={(e) => setRecinto({ ...recinto, nome: e.target.value })}
-      />
-      <input
-        type="number"
-        value={recinto.qnt_animais}
-        onChange={(e) => setRecinto({ ...recinto, qnt_animais: e.target.value })}
-      />
-      <button onClick={handleUpdateRecinto}>Salvar Alterações</button>
+      <div className="recinto-card-form">
+        <h1>Editar Recinto</h1>
+
+        <div className="recinto-form-grid">
+          <div className="recinto-field">
+            <label>Nome do recinto</label>
+            <input
+              type="text"
+              value={recinto.nome || ''}
+              onChange={(e) => setRecinto({ ...recinto, nome: e.target.value })}
+            />
+          </div>
+
+          <div className="recinto-field">
+            <label>Quantidade</label>
+            <input
+              type="number"
+              min="0"
+              value={recinto.qnt_animais || 0}
+              onChange={(e) => setRecinto({ ...recinto, qnt_animais: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+
+        <div className="actions">
+          <button className="btn btn-primary" onClick={handleUpdateRecinto}>Salvar alterações</button>
+        </div>
+      </div>
     </div>
   );
-}  
+}
 
 export default RecintoView;

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import supabase from './supabaseCliente';
+
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -19,12 +20,12 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const checkUserSession = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data?.user || null);
-    };
-
-    checkUserSession();
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+    // unsubscribe com segurança
+    return () => data?.subscription?.unsubscribe?.();
   }, []);
 
   const handleLogout = async () => {
@@ -34,28 +35,28 @@ function App() {
 
   return (
     <Router>
-      <div className="app">
+      <div className="app with-sidebar">
+        {/* Sidebar sempre visível (com links de login/cadastro se deslogado) */}
         <Sidebar user={user} onLogout={handleLogout} />
-        <div className={`main-content ${user ? '' : 'center-content'}`}>
+
+        <div className="main-content">
           <Routes>
-            {!user ? (
-              <>
-                <Route path="/home" element={<Home />} />
-                <Route path="/login" element={<Login onLogin={(user) => setUser(user)} />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="*" element={<Navigate to="/home" />} />
-              </>
-            ) : (
-              <>
-                <Route path="/home-user" element={<HomeUser user={user} />} />
-                <Route path="/recintos" element={<Recintos user={user} />} />
-                <Route path="/recinto-view/:id" element={<RecintoView user={user} />} />
-                <Route path="/species-control" element={<SpeciesControl user={user}/>} />
-                <Route path='/perfil' element={<Perfil user={user} />} />
-                <Route path="/controle-reprodutivo" element={<ControleReprodutivo user={user} />} />
-                <Route path="*" element={<Navigate to="/home-user" user={user}/>} />
-              </>
-            )}
+            {/* públicas */}
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<Login onLogin={(u) => setUser(u)} />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* protegidas (evitam erro ao entrar direto na URL sem user) */}
+            <Route path="/home-user" element={user ? <HomeUser user={user} /> : <Navigate to="/login" />} />
+            <Route path="/recintos" element={user ? <Recintos user={user} /> : <Navigate to="/login" />} />
+            <Route path="/recinto-view/:id" element={user ? <RecintoView user={user} /> : <Navigate to="/login" />} />
+            <Route path="/species-control" element={user ? <SpeciesControl user={user} /> : <Navigate to="/login" />} />
+            <Route path="/controle-reprodutivo" element={user ? <ControleReprodutivo user={user} /> : <Navigate to="/login" />} />
+            <Route path="/perfil" element={user ? <Perfil user={user} /> : <Navigate to="/login" />} />
+
+            {/* defaults */}
+            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
         </div>
       </div>

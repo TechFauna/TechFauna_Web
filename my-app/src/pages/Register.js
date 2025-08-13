@@ -9,68 +9,80 @@ function Register() {
   const [name, setName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
     const { data: user, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name } },
     });
-  
+
     if (error) {
       setErrorMessage('Erro ao cadastrar. Email já utilizado ou dados inválidos.');
-    } else {
-      // Salvar o perfil na tabela "perfil"
-      const { error: profileError } = await supabase
-        .from('perfil')
-        .insert({
-          id_user: user.user?.id,
-          nome: name,
-          email,
-        });
-  
-      if (profileError) {
-        setErrorMessage('Erro ao salvar dados no perfil. Tente novamente.');
-      } else {
-        setErrorMessage('');
-        setSuccessMessage('Cadastro realizado com sucesso! Redirecionando...');
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
-      }
+      setLoading(false);
+      return;
     }
+
+    const { error: profileError } = await supabase
+      .from('perfil')
+      .insert({ id_user: user.user?.id, nome: name, email });
+
+    if (profileError) {
+      setErrorMessage('Erro ao salvar dados no perfil. Tente novamente.');
+    } else {
+      setSuccessMessage('Cadastro realizado com sucesso! Redirecionando...');
+      setTimeout(() => { window.location.href = '/login'; }, 1200);
+    }
+    setLoading(false);
   };
-  
+
   return (
     <div className="register-container">
-      <div className="register-card">
-        <h2>Registrar</h2>
+      <div className="auth-card">
+        <div className="brand">
+          <div className="brand-mark">TF</div>
+          <div className="brand-name">TechFauna</div>
+        </div>
+
+        <h2>Criar conta</h2>
+
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
-        <form onSubmit={handleRegister}>
+
+        <form className="auth-form" onSubmit={handleRegister}>
           <input
             type="text"
-            placeholder="Nome"
+            placeholder="Nome completo"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            autoComplete="name"
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
           />
           <input
             type="password"
-            placeholder="Senha"
+            placeholder="Crie uma senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="new-password"
           />
-          <button type="submit">Cadastrar</button>
+          <button className="button-primary" type="submit" disabled={loading}>
+            {loading ? 'Cadastrando...' : 'Cadastrar'}
+          </button>
         </form>
       </div>
     </div>
