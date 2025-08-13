@@ -1,79 +1,71 @@
-.controle-reprodutivo-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fdfaf5;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Lexend', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap');
+
+:root{
+  --bg:#f6fbf8;
+  --panel:#ffffff;
+  --text:#0f1e16;
+  --muted:#5c7a68;
+  --primary:#16a34a;
+  --primary-700:#166534;
+  --border:#e6f0ea;
+  --success:#138e3d;
+  --danger:#b42318;
+  --shadow:0 10px 24px rgba(16,67,46,.10);
 }
 
-h1, h2 {
-  color: #42282c;
-  text-align: center;
-  margin-bottom: 20px;
+*{ box-sizing:border-box; font-family:'Lexend',sans-serif; }
+
+.controle-reprodutivo-container{
+  min-height:100vh; background: var(--bg); padding: 24px;
 }
 
-.form-group {
-  margin-bottom: 15px;
+h1{ margin:0 0 14px; font-size: clamp(22px,3vw,28px); }
+
+.error-message,.success-message{
+  margin: 10px 0 16px; font-weight:600;
+}
+.error-message{ color: var(--danger); }
+.success-message{ color: var(--success); }
+
+.form-group{
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow: var(--shadow);
+  padding:20px;
+  max-width:980px; margin:0 auto 12px;
+}
+.form-group label{ font-weight:600; margin:0 0 8px; display:block; }
+.form-group select{
+  width:100%;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:10px; background:#fff;
+  outline:none; transition: border-color .15s ease, box-shadow .15s ease;
+}
+.form-group select:focus{
+  border-color:#bfe2c9;
+  box-shadow:0 0 0 4px rgba(22,163,74,.12);
 }
 
-label {
-  display: block;
-  font-size: 1.2rem;
-  color: #42282c;
-  margin-bottom: 5px;
+.reproducao-button{
+  display:block; width:100%;
+  max-width:980px; margin: 8px auto 18px;
+  padding:12px 16px;
+  border:none; border-radius:10px;
+  background: var(--primary); color:#fff; font-weight:700; cursor:pointer;
+  transition: background .15s ease, transform .05s ease;
 }
+.reproducao-button:hover{ background: var(--primary-700); }
+.reproducao-button:active{ transform: translateY(1px); }
 
-select {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border-radius: 5px;
-  border: 1px solid #6d997a;
-  background-color: #ffffff;
+.active-gestations{
+  max-width:980px; margin: 0 auto;
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:16px;
 }
-
-button.reproducao-button {
-  background-color: #6ca19e;
-  color: #ffffff;
-  cursor: pointer;
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border-radius: 5px;
-  border: none;
-  transition: background-color 0.3s ease;
+.gestation-card{
+  background:#fff; border:1px solid var(--border);
+  border-radius:14px; padding:18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
 }
-
-button.reproducao-button:hover {
-  background-color: #84abaa;
-}
-
-.gestation-card {
-  background-color: #ffffff;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  color: #333;
-}
-
-.gestation-card p {
-  margin: 5px 0;
-  font-size: 1rem;
-  color: #42282c;
-}
-
-.gestation-status {
-  font-weight: bold;
-  color: #6ca19e;
-  margin-top: 10px;
-}
-
-.no-gestations {
-  text-align: center;
-  color: #6d997a;
-  font-size: 1.1rem;
-  margin-top: 15px;
-}
+.gestation-card p{ margin:4px 0; color: var(--muted); }

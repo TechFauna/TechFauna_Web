@@ -1,28 +1,19 @@
-
-.styled-card {
-    font-family: 'Lexend', sans-serif;
-    background-color: #f8f8f8;
-    color: #42282c;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-  
-  .styled-card:hover {
-    transform: scale(1.02);
-  }
-  
-  .styled-card-title {
-    font-size: 1.5rem;
-    color: #6ca19e;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  
-  .styled-card-content {
-    font-size: 1rem;
-    color: #6d997a;
-    text-align: center;
-  }
-  
+.styled-card{
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
+  padding:18px;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.styled-card:hover{
+  transform: translateY(-1px);
+  border-color:#cfe7d8;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+.styled-card-title{
+  margin:0 0 6px; font-size:1.15rem; color:var(--primary-700);
+}
+.styled-card-content{
+  color: var(--muted);
+}

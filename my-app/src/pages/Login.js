@@ -7,48 +7,53 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         setErrorMessage('Erro ao fazer login. Verifique suas credenciais.');
       } else {
-        setErrorMessage('');
+        onLogin?.(data.user);
         setSuccessMessage('Login realizado com sucesso! Redirecionando...');
-        
-        // Chama o callback para atualizar o estado do usuário no App.js
-        onLogin(data.user);
-
-        setTimeout(() => {
-          window.location.href = '/home-user';
-        }, 2000);
+        setTimeout(() => { window.location.href = '/home-user'; }, 1200);
       }
     } catch (err) {
       console.error('Erro inesperado ao fazer login:', err);
       setErrorMessage('Erro inesperado ao fazer login.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <h2>Login</h2>
+      <div className="auth-card">
+        <div className="brand">
+          <div className="brand-mark">TF</div>
+          <div className="brand-name">TechFauna</div>
+        </div>
+
+        <h2>Entrar</h2>
+
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
-        <form onSubmit={handleLogin}>
+
+        <form className="auth-form" onSubmit={handleLogin}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Seu e-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
           />
           <input
             type="password"
@@ -56,19 +61,17 @@ function Login({ onLogin }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
           />
-          <button type="submit">Entrar</button>
+          <button className="button-primary" type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
         </form>
-        <p>
+
+        <p className="helper">
           Esqueceu sua senha?{' '}
-          <a
-            href="#"
-            role="button"
-            onClick={() =>
-              alert('Função de redefinição de senha ainda não implementada.')
-            }
-          >
-            Clique aqui
+          <a href="#" onClick={() => alert('Função de redefinição de senha ainda não implementada.')}>
+            Redefinir
           </a>
         </p>
       </div>

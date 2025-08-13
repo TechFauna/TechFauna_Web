@@ -1,28 +1,55 @@
-// Sidebar.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
-function Sidebar({ user, onLogout }) {
+const Sidebar = ({ user, onLogout }) => {
   return (
-    <div className="sidebar">
-      {user ? (
-        <>
-          <Link to="/home-user">Home</Link>
-          <Link to="/recintos">Recintos</Link>
-          <Link to="/species-control">Espécies</Link>
-          <Link to="/controle-reprodutivo">Controle Reprodutivo</Link>
-          <button onClick={onLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <Link to="/home">Home</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Registrar</Link>
-        </>
-      )}
-    </div>
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="mark">TF</div>
+        <div className="name">TechFauna</div>
+      </div>
+
+      <nav className="nav">
+        <NavLink to="/home" className={({isActive}) => (isActive ? 'active' : '')}>
+          Início
+        </NavLink>
+
+        {user ? (
+          <>
+            <NavLink to="/home-user" className={({isActive}) => (isActive ? 'active' : '')}>
+              Painel
+            </NavLink>
+            <NavLink to="/recintos" className={({isActive}) => (isActive ? 'active' : '')}>
+              Recintos
+            </NavLink>
+            <NavLink to="/species-control" className={({isActive}) => (isActive ? 'active' : '')}>
+              Espécies
+            </NavLink>
+            <NavLink to="/controle-reprodutivo" className={({isActive}) => (isActive ? 'active' : '')}>
+              Reprodutivo
+            </NavLink>
+            <NavLink to="/perfil" className={({isActive}) => (isActive ? 'active' : '')}>
+              Perfil
+            </NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink to="/login" className={({isActive}) => (isActive ? 'active' : '')}>
+              Entrar
+            </NavLink>
+            <NavLink to="/register" className={({isActive}) => (isActive ? 'active' : '')}>
+              Cadastrar
+            </NavLink>
+          </>
+        )}
+      </nav>
+
+      <div className="sidebar-footer">
+        {user ? <button className="logout-btn" onClick={onLogout}>Sair</button> : null}
+      </div>
+    </aside>
   );
-}
+};
 
 export default Sidebar;
