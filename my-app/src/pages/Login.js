@@ -23,7 +23,7 @@ function Login({ onLogin }) {
       } else {
         onLogin?.(data.user);
         setSuccessMessage('Login realizado com sucesso! Redirecionando...');
-        setTimeout(() => { window.location.href = '/home-user'; }, 1200);
+        setTimeout(() => { window.location.href = '/home'; }, 1200);
       }
     } catch (err) {
       console.error('Erro inesperado ao fazer login:', err);
