@@ -67,10 +67,10 @@ const PerfilPage = ({ user }) => {
 
   return (
     <div className="perfil-page-container">
-      <h1>Perfil do Usuário</h1>
+      <h1>Informações do Perfil</h1>
 
       <div className="profile-info">
-        <img src={userFotoPerfil} alt="Foto do Usuário" className="profile-pic" />
+        <img src={userFotoPerfil} alt="Foto" className="profile-pic" margin="0" />
 
         <input type="file" accept="image/png, image/jpeg" onChange={handleFotoUpload} />
 
@@ -79,7 +79,7 @@ const PerfilPage = ({ user }) => {
           type="text"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
-          placeholder="Seu nome completo"
+          placeholder="Nome da empresa ou usuário"
         />
         <button onClick={handleNomeUpdate}>Salvar Nome</button>
       </div>

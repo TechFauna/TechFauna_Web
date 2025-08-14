@@ -60,9 +60,9 @@ function HomeUser({ user }) {
           <p>Gerencie indivíduos e atributos.</p>
         </div>
 
-        <div className="card" onClick={() => navigate("/controle-reprodutivo")}>
-          <h2>Controle Reprodutivo</h2>
-          <p>Acompanhe cruzas, ovos e nascimentos.</p>
+        <div className="card" onClick={() => navigate("/perfil")}>
+          <h2>Perfil</h2>
+          <p>Customize e adicione informações.</p>
         </div>
       </div>
     </div>

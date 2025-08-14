@@ -26,9 +26,7 @@ const Sidebar = ({ user, onLogout }) => {
             <NavLink to="/species-control" className={({isActive}) => (isActive ? 'active' : '')}>
               Espécies
             </NavLink>
-            <NavLink to="/controle-reprodutivo" className={({isActive}) => (isActive ? 'active' : '')}>
-              Reprodutivo
-            </NavLink>
+            
             <NavLink to="/perfil" className={({isActive}) => (isActive ? 'active' : '')}>
               Perfil
             </NavLink>

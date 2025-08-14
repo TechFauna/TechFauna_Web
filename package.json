@@ -1,4 +1,9 @@
 {
+  "name": "techfauna_web",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server/server.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
     "cors": "^2.8.5",
