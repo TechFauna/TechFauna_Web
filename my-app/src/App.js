@@ -12,6 +12,7 @@ import SpeciesControl from './pages/SpeciesControl';
 import ControleReprodutivo from './pages/ControleReprodutivo';
 import RecintoView from './pages/RecintoView';
 import Perfil from './pages/PerfilPage';
+import Usuarios from './pages/Usuarios'; // novo import
 
 import Sidebar from './components/Sidebar';
 import './App.css';
@@ -53,6 +54,14 @@ function App() {
             <Route path="/species-control" element={user ? <SpeciesControl user={user} /> : <Navigate to="/login" />} />
             <Route path="/controle-reprodutivo" element={user ? <ControleReprodutivo user={user} /> : <Navigate to="/login" />} />
             <Route path="/perfil" element={user ? <Perfil user={user} /> : <Navigate to="/login" />} />
+            <Route
+              path="/usuarios"
+              element={
+                user && user.user_metadata?.role === 'admin'
+                  ? <Usuarios user={user} />
+                  : <Navigate to="/usuarios" />
+              }
+            />
 
             {/* defaults */}
             <Route path="/" element={<Navigate to="/home" />} />

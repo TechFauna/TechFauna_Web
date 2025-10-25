@@ -19,3 +19,24 @@
     padding-top:72px; /* espaço para a topbar */
   }
 }
+
+/* tabela responsiva de usuários */
+.usuarios-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+.usuarios-table th, .usuarios-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.usuarios-table th {
+  background: #f5f5f5;
+}
+.usuarios-table tr:nth-child(even) {
+  background: #fafafa;
+}
+.usuarios-page {
+  padding: 24px;
+}

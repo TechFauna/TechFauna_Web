@@ -30,6 +30,15 @@ const Sidebar = ({ user, onLogout }) => {
             <NavLink to="/perfil" className={({isActive}) => (isActive ? 'active' : '')}>
               Perfil
             </NavLink>
+
+            <NavLink to="/usuarios" className={({isActive}) => (isActive ? 'active' : '')}>
+              Perfil
+            </NavLink>
+            {user && user.user_metadata?.role === 'admin' && (
+              <NavLink to="/usuarios" className={({isActive}) => (isActive ? 'active' : '')}>
+                Usuários
+              </NavLink>
+            )}
           </>
         ) : (
           <>
