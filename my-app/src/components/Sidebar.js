@@ -2,6 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
+const linkClass = ({ isActive }) => (isActive ? 'active' : '');
+
 const Sidebar = ({ user, onLogout }) => {
   return (
     <aside className="sidebar">
@@ -11,41 +13,37 @@ const Sidebar = ({ user, onLogout }) => {
       </div>
 
       <nav className="nav">
-        <NavLink to="/home" className={({isActive}) => (isActive ? 'active' : '')}>
-          Início
+        <NavLink to="/home" className={linkClass}>
+          Inicio
+        </NavLink>
+        <NavLink to="/tasks" className={linkClass}>
+          Tarefas
         </NavLink>
 
         {user ? (
           <>
-            <NavLink to="/home-user" className={({isActive}) => (isActive ? 'active' : '')}>
+            <NavLink to="/home-user" className={linkClass}>
               Painel
             </NavLink>
-            <NavLink to="/recintos" className={({isActive}) => (isActive ? 'active' : '')}>
+            <NavLink to="/recintos" className={linkClass}>
               Recintos
             </NavLink>
-            <NavLink to="/species-control" className={({isActive}) => (isActive ? 'active' : '')}>
-              Espécies
+            <NavLink to="/species-control" className={linkClass}>
+              Especies
             </NavLink>
-            
-            <NavLink to="/perfil" className={({isActive}) => (isActive ? 'active' : '')}>
+            <NavLink to="/perfil" className={linkClass}>
               Perfil
             </NavLink>
-
-            <NavLink to="/usuarios" className={({isActive}) => (isActive ? 'active' : '')}>
-              Perfil
+            <NavLink to="/usuarios" className={linkClass}>
+              Usuarios
             </NavLink>
-            {user && user.user_metadata?.role === 'admin' && (
-              <NavLink to="/usuarios" className={({isActive}) => (isActive ? 'active' : '')}>
-                Usuários
-              </NavLink>
-            )}
           </>
         ) : (
           <>
-            <NavLink to="/login" className={({isActive}) => (isActive ? 'active' : '')}>
+            <NavLink to="/login" className={linkClass}>
               Entrar
             </NavLink>
-            <NavLink to="/register" className={({isActive}) => (isActive ? 'active' : '')}>
+            <NavLink to="/register" className={linkClass}>
               Cadastrar
             </NavLink>
           </>
@@ -53,7 +51,11 @@ const Sidebar = ({ user, onLogout }) => {
       </nav>
 
       <div className="sidebar-footer">
-        {user ? <button className="logout-btn" onClick={onLogout}>Sair</button> : null}
+        {user ? (
+          <button className="logout-btn" onClick={onLogout}>
+            Sair
+          </button>
+        ) : null}
       </div>
     </aside>
   );

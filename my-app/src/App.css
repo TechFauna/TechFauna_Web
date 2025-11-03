@@ -40,3 +40,12 @@
 .usuarios-page {
   padding: 24px;
 }
+
+.route-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-weight: 600;
+  color: #14532d;
+}

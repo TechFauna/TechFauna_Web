@@ -1,5 +1,5 @@
 // App.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import supabase from './supabaseCliente';
 
@@ -12,58 +12,82 @@ import SpeciesControl from './pages/SpeciesControl';
 import ControleReprodutivo from './pages/ControleReprodutivo';
 import RecintoView from './pages/RecintoView';
 import Perfil from './pages/PerfilPage';
-import Usuarios from './pages/Usuarios'; // novo import
+import Usuarios from './pages/Usuarios';
+import Tasks from './pages/Tasks';
 
 import Sidebar from './components/Sidebar';
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    let active = true;
+
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) {
+        return;
+      }
+      setUser(data?.session?.user || null);
+      setAuthLoading(false);
+    };
+
+    syncSession();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) {
+        return;
+      }
       setUser(session?.user || null);
+      setAuthLoading(false);
     });
-    // unsubscribe com segurança
-    return () => data?.subscription?.unsubscribe?.();
+
+    return () => {
+      active = false;
+      subscription?.subscription?.unsubscribe?.();
+    };
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogin = useCallback((nextUser) => {
+    setUser(nextUser);
+    setAuthLoading(false);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setAuthLoading(false);
+  }, []);
+
+  const renderProtected = (element) => {
+    if (authLoading) {
+      return <div className="route-loading">Carregando...</div>;
+    }
+    return user ? element : <Navigate to="/login" />;
   };
 
   return (
     <Router>
       <div className="app with-sidebar">
-        {/* Sidebar sempre visível (com links de login/cadastro se deslogado) */}
         <Sidebar user={user} onLogout={handleLogout} />
 
         <div className="main-content">
           <Routes>
-            {/* públicas */}
             <Route path="/home" element={<Home />} />
-            <Route path="/login" element={<Login onLogin={(u) => setUser(u)} />} />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
 
-            {/* protegidas (evitam erro ao entrar direto na URL sem user) */}
-            <Route path="/home-user" element={user ? <HomeUser user={user} /> : <Navigate to="/login" />} />
-            <Route path="/recintos" element={user ? <Recintos user={user} /> : <Navigate to="/login" />} />
-            <Route path="/recinto-view/:id" element={user ? <RecintoView user={user} /> : <Navigate to="/login" />} />
-            <Route path="/species-control" element={user ? <SpeciesControl user={user} /> : <Navigate to="/login" />} />
-            <Route path="/controle-reprodutivo" element={user ? <ControleReprodutivo user={user} /> : <Navigate to="/login" />} />
-            <Route path="/perfil" element={user ? <Perfil user={user} /> : <Navigate to="/login" />} />
-            <Route
-              path="/usuarios"
-              element={
-                user && user.user_metadata?.role === 'admin'
-                  ? <Usuarios user={user} />
-                  : <Navigate to="/usuarios" />
-              }
-            />
+            <Route path="/home-user" element={renderProtected(<HomeUser user={user} />)} />
+            <Route path="/recintos" element={renderProtected(<Recintos user={user} />)} />
+            <Route path="/recinto-view/:id" element={renderProtected(<RecintoView user={user} />)} />
+            <Route path="/species-control" element={renderProtected(<SpeciesControl user={user} />)} />
+            <Route path="/controle-reprodutivo" element={renderProtected(<ControleReprodutivo user={user} />)} />
+            <Route path="/perfil" element={renderProtected(<Perfil user={user} />)} />
+            <Route path="/usuarios" element={renderProtected(<Usuarios user={user} />)} />
+            <Route path="/tasks" element={<Tasks />} />
 
-            {/* defaults */}
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
