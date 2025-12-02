@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import HomeUser from './pages/HomeUser';
 import Recintos from './pages/Recintos';
 import SpeciesControl from './pages/SpeciesControl';
+import AnimalsControl from './pages/AnimalsControl';
 import ControleReprodutivo from './pages/ControleReprodutivo';
 import RecintoView from './pages/RecintoView';
 import Perfil from './pages/PerfilPage';
@@ -83,10 +84,11 @@ function App() {
             <Route path="/recintos" element={renderProtected(<Recintos user={user} />)} />
             <Route path="/recinto-view/:id" element={renderProtected(<RecintoView user={user} />)} />
             <Route path="/species-control" element={renderProtected(<SpeciesControl user={user} />)} />
+            <Route path="/animals-control" element={renderProtected(<AnimalsControl user={user} />)} />
             <Route path="/controle-reprodutivo" element={renderProtected(<ControleReprodutivo user={user} />)} />
             <Route path="/perfil" element={renderProtected(<Perfil user={user} />)} />
             <Route path="/usuarios" element={renderProtected(<Usuarios user={user} />)} />
-            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/tasks" element={renderProtected(<Tasks user={user} />)} />
 
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="*" element={<Navigate to="/home" />} />

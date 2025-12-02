@@ -239,10 +239,10 @@
   background: linear-gradient(145deg, #14532d 0%, #0f5132 100%);
   color: #f0fff4;
   border-radius: 24px;
-  padding: 24px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   box-shadow: 0 16px 40px rgba(20, 83, 45, 0.35);
 }
 
@@ -252,7 +252,7 @@
 }
 
 .task-form-card__caption {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 14px;
   color: rgba(240, 255, 244, 0.78);
 }
@@ -260,26 +260,34 @@
 .task-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .task-form label {
-  font-size: 13px;
+  display: block;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(240, 255, 244, 0.9);
+  margin-bottom: 6px;
 }
 
 .task-form input,
 .task-form select,
 .task-form textarea {
+  width: 100%;
   border-radius: 12px;
   border: none;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
   transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-form select option {
+  background: #ffffff;
+  color: #000000;
 }
 
 .task-form input:focus,
@@ -297,7 +305,21 @@
 .task-form__row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
+}
+
+.task-form__row > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-form__row > div label {
+  margin-bottom: 6px;
+}
+
+.task-form__row > div input,
+.task-form__row > div select {
+  flex: 1;
 }
 
 .checkbox {
@@ -306,11 +328,14 @@
   gap: 10px;
   font-weight: 500;
   color: rgba(240, 255, 244, 0.85);
+  margin-top: 4px;
+  padding: 8px 0;
 }
 
 .checkbox input {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .task-form__actions {

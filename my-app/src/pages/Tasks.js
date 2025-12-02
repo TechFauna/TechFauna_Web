@@ -20,7 +20,7 @@ const emptyForm = {
   photo_required: false,
   enclosure_id: '',
   species_id: '',
-  checklist_template_id: '',
+  animal_id: '',
   prerequisites: [],
 };
 
@@ -85,8 +85,10 @@ const buildQueryString = (filters) => {
   return query ? `?${query}` : '';
 };
 
-function Tasks({ canManage = true }) {
+function Tasks({ canManage = true, user }) {
   const [token, setToken] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -100,6 +102,57 @@ function Tasks({ canManage = true }) {
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const readOnly = !canManage;
+
+  // Dados para os selects
+  const [users, setUsers] = useState([]);
+  const [enclosures, setEnclosures] = useState([]);
+  const [species, setSpecies] = useState([]);
+  const [animals, setAnimals] = useState([]);
+
+  // Buscar perfil do usuário logado para obter organization_id
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, organization_id')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setUserProfile(data);
+      }
+      setProfileLoaded(true);
+    };
+    fetchUserProfile();
+  }, [user]);
+
+  // Buscar usuários, recintos, espécies e animais (filtrados por organização)
+  useEffect(() => {
+    const fetchSelectData = async () => {
+      if (!userProfile?.organization_id) {
+        setUsers([]);
+        setEnclosures([]);
+        setSpecies([]);
+        setAnimals([]);
+        return;
+      }
+      try {
+        const [usersRes, enclosuresRes, speciesRes, animalsRes] = await Promise.all([
+          supabase.from('profiles').select('id, name, email').eq('organization_id', userProfile.organization_id).order('name', { ascending: true }),
+          supabase.from('enclosures').select('id, name').eq('organization_id', userProfile.organization_id).order('name', { ascending: true }),
+          supabase.from('species').select('id, common_name').eq('organization_id', userProfile.organization_id).order('common_name', { ascending: true }),
+          supabase.from('animals').select('id, name, species_id').eq('organization_id', userProfile.organization_id).order('name', { ascending: true }),
+        ]);
+        if (!usersRes.error) setUsers(usersRes.data || []);
+        if (!enclosuresRes.error) setEnclosures(enclosuresRes.data || []);
+        if (!speciesRes.error) setSpecies(speciesRes.data || []);
+        if (!animalsRes.error) setAnimals(animalsRes.data || []);
+      } catch (err) {
+        console.error('Erro ao buscar dados para selects:', err);
+      }
+    };
+    fetchSelectData();
+  }, [userProfile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -191,7 +244,7 @@ function Tasks({ canManage = true }) {
       photo_required: Boolean(task.photo_required),
       enclosure_id: task.enclosure_id || '',
       species_id: task.species_id || '',
-      checklist_template_id: task.checklist_template_id || '',
+      animal_id: task.animal_id || '',
       prerequisites: ensureArrayOfNumbers(task.prerequisites?.map((p) => p.depends_on_task_id) || []),
     });
   };
@@ -205,14 +258,14 @@ function Tasks({ canManage = true }) {
     return {
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
-      assigned_to: formData.assigned_to.trim() || undefined,
+      assigned_to: formData.assigned_to || undefined,
       due_at: dueAtPayload,
       priority: sanitizedPriority,
       status: sanitizedStatus,
       photo_required: formData.photo_required,
-      enclosure_id: formData.enclosure_id.trim() || undefined,
-      species_id: formData.species_id.trim() || undefined,
-      checklist_template_id: formData.checklist_template_id.trim() || undefined,
+      enclosure_id: formData.enclosure_id || undefined,
+      species_id: formData.species_id || undefined,
+      animal_id: formData.animal_id || undefined,
       prerequisites: ensureArrayOfNumbers(formData.prerequisites),
     };
   };
@@ -302,10 +355,61 @@ function Tasks({ canManage = true }) {
     return option?.label || (value ? value : 'Nao definido');
   };
 
+  // Funções para buscar nomes a partir dos IDs
+  const getUserName = (userId) => {
+    if (!userId) return '-';
+    const user = users.find((u) => u.id === userId);
+    return user?.name || user?.email || userId;
+  };
+
+  const getEnclosureName = (enclosureId) => {
+    if (!enclosureId) return '-';
+    const enclosure = enclosures.find((e) => e.id === enclosureId);
+    return enclosure?.name || enclosureId;
+  };
+
+  const getSpeciesName = (speciesId) => {
+    if (!speciesId) return '-';
+    const sp = species.find((s) => s.id === speciesId);
+    return sp?.common_name || speciesId;
+  };
+
   const statusLabel = (value) => {
     const option = statusOptions.find((item) => item.value === value);
     return option?.label || (value ? value : 'Nao definido');
   };
+
+  // Aguardar carregar o perfil
+  if (!profileLoaded) {
+    return (
+      <div className="tasks-page">
+        <header className="tasks-header">
+          <div>
+            <h1>Gestao de Tarefas</h1>
+          </div>
+        </header>
+        <p style={{ textAlign: 'center', padding: '40px' }}>Carregando...</p>
+      </div>
+    );
+  }
+
+  // Se o usuário não está vinculado a uma empresa, mostrar mensagem
+  if (!userProfile?.organization_id) {
+    return (
+      <div className="tasks-page">
+        <header className="tasks-header">
+          <div>
+            <h1>Gestao de Tarefas</h1>
+          </div>
+        </header>
+        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#fff3cd', borderRadius: '8px', margin: '20px auto', maxWidth: '600px' }}>
+          <h2 style={{ color: '#856404' }}>⚠️ Acesso Restrito</h2>
+          <p style={{ color: '#856404' }}>Você não está vinculado a nenhuma empresa.</p>
+          <p style={{ color: '#856404' }}>Para acessar esta funcionalidade, solicite um convite de uma empresa ou crie sua própria empresa.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tasks-page">
@@ -410,7 +514,7 @@ function Tasks({ canManage = true }) {
                   <dl className="task-card__meta">
                     <div>
                       <dt>Responsavel</dt>
-                      <dd>{task.assigned_to || '-'}</dd>
+                      <dd>{getUserName(task.assigned_to)}</dd>
                     </div>
                     <div>
                       <dt>Prazo</dt>
@@ -426,15 +530,11 @@ function Tasks({ canManage = true }) {
                     </div>
                     <div>
                       <dt>Recinto</dt>
-                      <dd>{task.enclosure_id || '-'}</dd>
+                      <dd>{getEnclosureName(task.enclosure_id)}</dd>
                     </div>
                     <div>
                       <dt>Especie</dt>
-                      <dd>{task.species_id || '-'}</dd>
-                    </div>
-                    <div>
-                      <dt>Template</dt>
-                      <dd>{task.checklist_template_id || '-'}</dd>
+                      <dd>{getSpeciesName(task.species_id)}</dd>
                     </div>
                   </dl>
 
@@ -513,13 +613,19 @@ function Tasks({ canManage = true }) {
             <div className="task-form__row">
               <div>
                 <label htmlFor="task-assigned">Responsavel</label>
-                <input
+                <select
                   id="task-assigned"
                   name="assigned_to"
-                  placeholder="ID ou nome do responsavel"
                   value={formData.assigned_to}
                   onChange={handleFormChange}
-                />
+                >
+                  <option value="">Selecione...</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name || user.email}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label htmlFor="task-due">Prazo</label>
@@ -569,34 +675,57 @@ function Tasks({ canManage = true }) {
             <div className="task-form__row">
               <div>
                 <label htmlFor="task-recinto">Recinto</label>
-                <input
+                <select
                   id="task-recinto"
                   name="enclosure_id"
-                  placeholder="ID do recinto"
                   value={formData.enclosure_id}
                   onChange={handleFormChange}
-                />
+                >
+                  <option value="">Selecione...</option>
+                  {enclosures.map((enc) => (
+                    <option key={enc.id} value={enc.id}>
+                      {enc.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label htmlFor="task-especie">Especie</label>
-                <input
+                <select
                   id="task-especie"
                   name="species_id"
-                  placeholder="ID da especie"
                   value={formData.species_id}
                   onChange={handleFormChange}
-                />
+                >
+                  <option value="">Selecione...</option>
+                  {species.map((sp) => (
+                    <option key={sp.id} value={sp.id}>
+                      {sp.common_name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <label htmlFor="task-template">Template</label>
-            <input
-              id="task-template"
-              name="checklist_template_id"
-              placeholder="ID do template"
-              value={formData.checklist_template_id}
-              onChange={handleFormChange}
-            />
+            <div className="task-form__row">
+              <div>
+                <label htmlFor="task-animal">Animal</label>
+                <select
+                  id="task-animal"
+                  name="animal_id"
+                  value={formData.animal_id}
+                  onChange={handleFormChange}
+                >
+                  <option value="">Selecione...</option>
+                  {animals.map((animal) => (
+                    <option key={animal.id} value={animal.id}>
+                      {animal.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div></div>
+            </div>
 
             <label htmlFor="task-prereq">Dependencias</label>
             <select

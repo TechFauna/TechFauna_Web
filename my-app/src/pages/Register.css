@@ -72,3 +72,37 @@ h2{ margin:6px 0 16px; }
 
 .success-message{ color:#138e3d; margin:8px 0; }
 .error-message{ color:#b42318; margin:8px 0; }
+
+.auth-form select,
+.auth-form .role-select {
+  width:100%;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  outline:none;
+  font-size:1rem;
+  margin-bottom:12px;
+  background:#fff;
+  transition:border-color .15s ease, box-shadow .15s ease;
+  cursor:pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235c7a68' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.auth-form select:focus,
+.auth-form .role-select:focus {
+  border-color:#bfe2c9;
+  box-shadow:0 0 0 4px rgba(22,163,74,.12);
+}
+
+.info-message {
+  color: var(--muted);
+  font-size: 0.875rem;
+  background: #f0f9f4;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}

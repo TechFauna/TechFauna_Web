@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import supabase from '../supabaseCliente';
 import './RecintoView.css';
 
 function RecintoView() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [recinto, setRecinto] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const handleUpdateRecinto = async () => {
     const { error } = await supabase
-      .from('recintos')
+      .from('enclosures')
       .update({
-        nome: recinto.nome,
-        qnt_animais: recinto.qnt_animais,
+        name: recinto.name,
+        environment_type: recinto.environment_type,
+        capacity: recinto.capacity,
+        status: recinto.status,
+        notes: recinto.notes,
       })
-      .eq('id_recinto', recinto.id_recinto);
+      .eq('id', recinto.id);
 
     if (error) {
       console.error('Erro ao atualizar recinto:', error);
@@ -25,13 +29,30 @@ function RecintoView() {
     }
   };
 
+  const handleDeleteRecinto = async () => {
+    if (!window.confirm('Tem certeza que deseja excluir este recinto?')) return;
+
+    const { error } = await supabase
+      .from('enclosures')
+      .delete()
+      .eq('id', recinto.id);
+
+    if (error) {
+      console.error('Erro ao excluir recinto:', error);
+      alert('Erro ao excluir o recinto.');
+    } else {
+      alert('Recinto excluído com sucesso!');
+      navigate('/recintos');
+    }
+  };
+
   useEffect(() => {
     const fetchRecinto = async () => {
       try {
         const { data, error } = await supabase
-          .from('recintos')
+          .from('enclosures')
           .select('*')
-          .eq('id_recinto', id)
+          .eq('id', id)
           .single();
 
         if (error) throw error;
@@ -58,24 +79,55 @@ function RecintoView() {
             <label>Nome do recinto</label>
             <input
               type="text"
-              value={recinto.nome || ''}
-              onChange={(e) => setRecinto({ ...recinto, nome: e.target.value })}
+              value={recinto.name || ''}
+              onChange={(e) => setRecinto({ ...recinto, name: e.target.value })}
             />
           </div>
 
           <div className="recinto-field">
-            <label>Quantidade</label>
+            <label>Tipo de ambiente</label>
+            <input
+              type="text"
+              value={recinto.environment_type || ''}
+              onChange={(e) => setRecinto({ ...recinto, environment_type: e.target.value })}
+            />
+          </div>
+
+          <div className="recinto-field">
+            <label>Capacidade</label>
             <input
               type="number"
               min="0"
-              value={recinto.qnt_animais || 0}
-              onChange={(e) => setRecinto({ ...recinto, qnt_animais: Number(e.target.value) })}
+              value={recinto.capacity || ''}
+              onChange={(e) => setRecinto({ ...recinto, capacity: Number(e.target.value) })}
+            />
+          </div>
+
+          <div className="recinto-field">
+            <label>Status</label>
+            <select
+              value={recinto.status || 'ativo'}
+              onChange={(e) => setRecinto({ ...recinto, status: e.target.value })}
+            >
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+              <option value="manutencao">Em Manutenção</option>
+            </select>
+          </div>
+
+          <div className="recinto-field" style={{ gridColumn: '1 / -1' }}>
+            <label>Observações</label>
+            <textarea
+              value={recinto.notes || ''}
+              onChange={(e) => setRecinto({ ...recinto, notes: e.target.value })}
+              rows={3}
             />
           </div>
         </div>
 
         <div className="actions">
           <button className="btn btn-primary" onClick={handleUpdateRecinto}>Salvar alterações</button>
+          <button className="btn btn-danger" onClick={handleDeleteRecinto}>Excluir recinto</button>
         </div>
       </div>
     </div>

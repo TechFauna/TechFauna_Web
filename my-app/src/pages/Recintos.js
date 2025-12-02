@@ -6,32 +6,58 @@ import './Recintos.css';
 const Recintos = ({ user }) => {
   const navigate = useNavigate();
   const [nomeRecinto, setNomeRecinto] = useState('');
-  const [especie, setEspecie] = useState('');
-  const [qntAnimais, setQntAnimais] = useState(0);
+  const [tipoAmbiente, setTipoAmbiente] = useState('');
+  const [capacidade, setCapacidade] = useState('');
   const [recintos, setRecintos] = useState([]);
   const [filteredRecintos, setFilteredRecintos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
+  // Buscar perfil do usuário logado para obter organization_id
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, organization_id')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setUserProfile(data);
+      }
+      setProfileLoaded(true);
+    };
+    fetchUserProfile();
+  }, [user]);
+
+  // Buscar recintos filtrados por organização
   useEffect(() => {
     const fetchRecintos = async () => {
+      if (!userProfile?.organization_id) {
+        setRecintos([]); // Limpar dados se não tem organização
+        setFilteredRecintos([]);
+        return;
+      }
       try {
         const { data, error } = await supabase
-          .from('recintos')
+          .from('enclosures')
           .select('*')
-          .eq('id_user', user.id);
+          .eq('organization_id', userProfile.organization_id)
+          .order('name', { ascending: true });
 
         if (error) throw error;
         setRecintos(data || []);
         setFilteredRecintos(data || []);
       } catch (err) {
-        setError('Erro ao buscar os recintos do usuário.');
+        setError('Erro ao buscar os recintos.');
         console.error('Erro ao buscar recintos:', err);
       }
     };
     fetchRecintos();
-  }, [user.id]);
+  }, [userProfile]);
 
   const createRecinto = async (e) => {
     e.preventDefault();
@@ -40,12 +66,13 @@ const Recintos = ({ user }) => {
 
     try {
       const { data, error } = await supabase
-        .from('recintos')
+        .from('enclosures')
         .insert([{
-          nome: nomeRecinto,
-          especie: especie,
-          qnt_animais: qntAnimais,
-          id_user: user.id, // mantém compatível com sua RLS atual
+          name: nomeRecinto,
+          environment_type: tipoAmbiente || null,
+          capacity: capacidade ? parseInt(capacidade, 10) : null,
+          status: 'ativo',
+          organization_id: userProfile?.organization_id,
         }])
         .select();
 
@@ -55,8 +82,8 @@ const Recintos = ({ user }) => {
       setRecintos(updated);
       setFilteredRecintos(updated);
       setNomeRecinto('');
-      setEspecie('');
-      setQntAnimais(0);
+      setTipoAmbiente('');
+      setCapacidade('');
       setSuccessMessage('Recinto criado com sucesso!');
     } catch (err) {
       setError('Erro ao criar o recinto.');
@@ -70,13 +97,37 @@ const Recintos = ({ user }) => {
     setFilteredRecintos(
       recintos.filter(
         (r) =>
-          r.nome?.toLowerCase().includes(term) ||
-          r.especie?.toLowerCase().includes(term)
+          r.name?.toLowerCase().includes(term) ||
+          r.environment_type?.toLowerCase().includes(term)
       )
     );
   };
 
   const handleViewRecinto = (idRecinto) => navigate(`/recinto-view/${idRecinto}`);
+
+  // Aguardar carregar o perfil
+  if (!profileLoaded) {
+    return (
+      <div className="recintos-container">
+        <h1>Meus Recintos</h1>
+        <p style={{ textAlign: 'center', padding: '40px' }}>Carregando...</p>
+      </div>
+    );
+  }
+
+  // Se o usuário não está vinculado a uma empresa, mostrar mensagem
+  if (!userProfile?.organization_id) {
+    return (
+      <div className="recintos-container">
+        <h1>Meus Recintos</h1>
+        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#fff3cd', borderRadius: '8px', margin: '20px auto', maxWidth: '600px' }}>
+          <h2 style={{ color: '#856404' }}>⚠️ Acesso Restrito</h2>
+          <p style={{ color: '#856404' }}>Você não está vinculado a nenhuma empresa.</p>
+          <p style={{ color: '#856404' }}>Para acessar esta funcionalidade, solicite um convite de uma empresa ou crie sua própria empresa.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="recintos-container">
@@ -96,23 +147,21 @@ const Recintos = ({ user }) => {
           required
         />
 
-        <label>Espécie (principal)</label>
+        <label>Tipo de ambiente</label>
         <input
           type="text"
-          placeholder="Ex: Leão"
-          value={especie}
-          onChange={(e) => setEspecie(e.target.value)}
-          required
+          placeholder="Ex: Savana, Aquático, Floresta"
+          value={tipoAmbiente}
+          onChange={(e) => setTipoAmbiente(e.target.value)}
         />
 
-        <label>Quantidade</label>
+        <label>Capacidade</label>
         <input
           type="number"
           min="0"
-          placeholder="Ex: 5"
-          value={qntAnimais}
-          onChange={(e) => setQntAnimais(e.target.value)}
-          required
+          placeholder="Ex: 10"
+          value={capacidade}
+          onChange={(e) => setCapacidade(e.target.value)}
         />
 
         <button type="submit">Criar Recinto</button>
@@ -121,7 +170,7 @@ const Recintos = ({ user }) => {
       <div className="search-container">
         <input
           type="text"
-          placeholder="Pesquisar por recinto ou espécie..."
+          placeholder="Pesquisar por recinto ou tipo..."
           value={searchTerm}
           onChange={handleSearch}
         />
@@ -131,13 +180,14 @@ const Recintos = ({ user }) => {
       <div className="recintos-list">
         {filteredRecintos.map((recinto) => (
           <div
-            key={recinto.id_recinto}
+            key={recinto.id}
             className="recinto-card"
-            onClick={() => handleViewRecinto(recinto.id_recinto)}
+            onClick={() => handleViewRecinto(recinto.id)}
           >
-            <h3>{recinto.nome}</h3>
-            <p>Espécie: {recinto.especie}</p>
-            <p>Quantidade de indivíduos: {recinto.qnt_animais}</p>
+            <h3>{recinto.name}</h3>
+            <p>Tipo: {recinto.environment_type || 'Não definido'}</p>
+            <p>Capacidade: {recinto.capacity || 'Não definida'}</p>
+            <p>Status: {recinto.status}</p>
           </div>
         ))}
       </div>

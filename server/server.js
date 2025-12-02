@@ -1,7 +1,8 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
 
 const app = express();
 
@@ -98,7 +99,7 @@ const buildTaskResponse = (tasks = [], prerequisites = []) => {
 };
 
 app.post('/register', async (req, res) => {
-  const { email, senha } = req.body;
+  const { email, senha, name } = req.body;
 
   if (!validateEmail(email)) {
     return res.status(400).json({ message: 'Endereco de e-mail invalido.' });
@@ -112,26 +113,28 @@ app.post('/register', async (req, res) => {
 
     if (authError) throw authError;
 
-    const { data: recintoData, error: recintoError } = await supabase
-      .from('recintos')
+    // Criar perfil do usuario na tabela profiles
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
       .insert([{
-        nome: 'Recinto Padrao',
-        especie: 'Especie Inicial',
-        qnt_animais: 0,
-        id_user: authData.user.id,
+        id: authData.user.id,
+        email: email,
+        name: name || email.split('@')[0],
+        full_name: name || null,
       }])
       .select('*');
 
-    if (recintoError) throw recintoError;
+    if (profileError) throw profileError;
 
     return res.status(201).json({
-      message: 'Usuario e recinto criados com sucesso.',
-      recinto: recintoData,
+      message: 'Usuario criado com sucesso.',
+      user: authData.user,
+      profile: profileData,
     });
   } catch (error) {
-    console.error('Erro ao registrar usuario e criar recinto:', error);
+    console.error('Erro ao registrar usuario:', error);
     return res.status(500).json({
-      message: 'Erro ao registrar usuario e criar recinto.',
+      message: 'Erro ao registrar usuario.',
       error: error.message,
     });
   }
@@ -164,22 +167,24 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/recintos', async (req, res) => {
-  const { user_id: userId } = req.query;
+// ==================== ENCLOSURES (Recintos) ====================
 
-  if (!userId) {
-    return res.status(400).json({ message: 'user_id eh necessario.' });
-  }
+app.get('/enclosures', async (req, res) => {
+  const { area_id: areaId, status } = req.query;
 
   try {
-    const { data, error } = await supabase
-      .from('recintos')
-      .select('*')
-      .eq('id_user', userId);
+    let query = supabase.from('enclosures').select('*');
 
-    if (error) {
-      throw error;
+    if (areaId) {
+      query = query.eq('area_id', areaId);
     }
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('name', { ascending: true });
+
+    if (error) throw error;
 
     return res.status(200).json(data || []);
   } catch (error) {
@@ -188,14 +193,46 @@ app.get('/recintos', async (req, res) => {
   }
 });
 
-app.post('/recintos', async (req, res) => {
-  const { nome, especie, animais, id_user: idUser } = req.body;
+app.get('/enclosures/:id', async (req, res) => {
+  const { id } = req.params;
 
   try {
     const { data, error } = await supabase
-      .from('recintos')
-      .insert([{ nome, especie, animais, id_user: idUser }])
-      .select('*');
+      .from('enclosures')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error('Erro ao buscar recinto:', error);
+    return res.status(500).json({ message: 'Erro ao buscar recinto.', error: error.message });
+  }
+});
+
+app.post('/enclosures', async (req, res) => {
+  const { name, code, area_id, environment_type, capacity, status, notes } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: 'O campo name eh obrigatorio.' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('enclosures')
+      .insert([{
+        name,
+        code: code || null,
+        area_id: area_id || null,
+        environment_type: environment_type || null,
+        capacity: capacity || null,
+        status: status || 'ativo',
+        notes: notes || null,
+      }])
+      .select('*')
+      .single();
 
     if (error) throw error;
 
@@ -203,6 +240,211 @@ app.post('/recintos', async (req, res) => {
   } catch (error) {
     console.error('Erro ao criar recinto:', error);
     return res.status(500).json({ message: 'Erro ao criar recinto.', error: error.message });
+  }
+});
+
+app.patch('/enclosures/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, code, area_id, environment_type, capacity, status, notes } = req.body;
+
+  const updatePayload = {};
+  if (name !== undefined) updatePayload.name = name;
+  if (code !== undefined) updatePayload.code = code;
+  if (area_id !== undefined) updatePayload.area_id = area_id;
+  if (environment_type !== undefined) updatePayload.environment_type = environment_type;
+  if (capacity !== undefined) updatePayload.capacity = capacity;
+  if (status !== undefined) updatePayload.status = status;
+  if (notes !== undefined) updatePayload.notes = notes;
+
+  if (!Object.keys(updatePayload).length) {
+    return res.status(400).json({ message: 'Nenhum campo recebido para atualizacao.' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('enclosures')
+      .update(updatePayload)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json({ message: 'Recinto atualizado com sucesso.', data });
+  } catch (error) {
+    console.error('Erro ao atualizar recinto:', error);
+    return res.status(500).json({ message: 'Erro ao atualizar recinto.', error: error.message });
+  }
+});
+
+app.delete('/enclosures/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { error } = await supabase
+      .from('enclosures')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Erro ao remover recinto:', error);
+    return res.status(500).json({ message: 'Erro ao remover recinto.', error: error.message });
+  }
+});
+
+// ==================== SPECIES (Especies) ====================
+
+app.get('/species', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('species')
+      .select('*')
+      .order('common_name', { ascending: true });
+
+    if (error) throw error;
+
+    return res.status(200).json(data || []);
+  } catch (error) {
+    console.error('Erro ao buscar especies:', error);
+    return res.status(500).json({ message: 'Erro ao buscar especies.', error: error.message });
+  }
+});
+
+app.get('/species/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('species')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error('Erro ao buscar especie:', error);
+    return res.status(500).json({ message: 'Erro ao buscar especie.', error: error.message });
+  }
+});
+
+app.post('/species', async (req, res) => {
+  const { common_name, scientific_name, conservation_status, diet, description } = req.body;
+
+  if (!common_name) {
+    return res.status(400).json({ message: 'O campo common_name eh obrigatorio.' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('species')
+      .insert([{
+        common_name,
+        scientific_name: scientific_name || null,
+        conservation_status: conservation_status || null,
+        diet: diet || null,
+        description: description || null,
+      }])
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json({ message: 'Especie criada com sucesso.', data });
+  } catch (error) {
+    console.error('Erro ao criar especie:', error);
+    return res.status(500).json({ message: 'Erro ao criar especie.', error: error.message });
+  }
+});
+
+app.patch('/species/:id', async (req, res) => {
+  const { id } = req.params;
+  const { common_name, scientific_name, conservation_status, diet, description } = req.body;
+
+  const updatePayload = {};
+  if (common_name !== undefined) updatePayload.common_name = common_name;
+  if (scientific_name !== undefined) updatePayload.scientific_name = scientific_name;
+  if (conservation_status !== undefined) updatePayload.conservation_status = conservation_status;
+  if (diet !== undefined) updatePayload.diet = diet;
+  if (description !== undefined) updatePayload.description = description;
+
+  if (!Object.keys(updatePayload).length) {
+    return res.status(400).json({ message: 'Nenhum campo recebido para atualizacao.' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('species')
+      .update(updatePayload)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json({ message: 'Especie atualizada com sucesso.', data });
+  } catch (error) {
+    console.error('Erro ao atualizar especie:', error);
+    return res.status(500).json({ message: 'Erro ao atualizar especie.', error: error.message });
+  }
+});
+
+app.delete('/species/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { error } = await supabase
+      .from('species')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Erro ao remover especie:', error);
+    return res.status(500).json({ message: 'Erro ao remover especie.', error: error.message });
+  }
+});
+
+// ==================== PROFILES ====================
+
+app.get('/profiles', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, name, full_name, created_at')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    return res.status(200).json(data || []);
+  } catch (error) {
+    console.error('Erro ao buscar perfis:', error);
+    return res.status(500).json({ message: 'Erro ao buscar perfis.', error: error.message });
+  }
+});
+
+app.get('/profiles/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error('Erro ao buscar perfil:', error);
+    return res.status(500).json({ message: 'Erro ao buscar perfil.', error: error.message });
   }
 });
 
@@ -259,6 +501,7 @@ app.post('/tasks', async (req, res) => {
     photo_required: photoRequired = false,
     enclosure_id: enclosureId,
     species_id: speciesId,
+    animal_id: animalId,
     checklist_template_id: checklistTemplateId,
     recinto_id: legacyRecintoId,
     especie_id: legacyEspecieId,
@@ -297,7 +540,7 @@ app.post('/tasks', async (req, res) => {
       due_at: dueAt,
       enclosure_id: enclosureId ?? legacyRecintoId ?? null,
       species_id: speciesId ?? legacyEspecieId ?? null,
-      checklist_template_id: checklistTemplateId ?? legacyTemplateId ?? null,
+      animal_id: animalId ?? null,
     };
 
     Object.entries(optionalFields).forEach(([key, value]) => {
@@ -359,7 +602,7 @@ app.patch('/tasks/:id', async (req, res) => {
     photo_required: photoRequired,
     recinto_id: recintoId,
     especie_id: especieId,
-    template_id: templateId,
+    animal_id: animalId,
     prerequisites,
   } = req.body;
 
@@ -368,8 +611,6 @@ app.patch('/tasks/:id', async (req, res) => {
     req.body.enclosure_id ?? recintoId ?? req.body.recintoId ?? undefined;
   const speciesId =
     req.body.species_id ?? especieId ?? req.body.especieId ?? undefined;
-  const checklistTemplateId =
-    req.body.checklist_template_id ?? templateId ?? req.body.templateId ?? undefined;
 
   const normalizedPriority = priority !== undefined ? normalizePriority(priority) : undefined;
   if (priority !== undefined && !normalizedPriority) {
@@ -391,7 +632,7 @@ app.patch('/tasks/:id', async (req, res) => {
     photo_required: photoRequired,
     enclosure_id: enclosureId,
     species_id: speciesId,
-    checklist_template_id: checklistTemplateId,
+    animal_id: animalId,
   };
 
   Object.entries(fields).forEach(([key, value]) => {

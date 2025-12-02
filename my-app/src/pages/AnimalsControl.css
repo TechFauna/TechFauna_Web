@@ -1,0 +1,147 @@
+.animals-control-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+.animals-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow);
+}
+
+.animals-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.animals-form input,
+.animals-form select,
+.animals-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+}
+
+.animals-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.animals-form input:focus,
+.animals-form select:focus,
+.animals-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+.animals-form button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.animals-form button[type="submit"] {
+  background: var(--primary);
+  color: #fff;
+}
+
+.animals-form button[type="submit"]:hover {
+  background: var(--primary-700);
+}
+
+.animals-form button[type="button"] {
+  background: #f2f7f4;
+  color: var(--text);
+}
+
+.animals-form button[type="button"]:hover {
+  background: #e8f3ed;
+}
+
+.animals-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.animals-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.animal-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.animal-card h3 {
+  margin: 0 0 12px 0;
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.animal-card p {
+  margin: 6px 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.animal-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.animal-card-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.animal-card-actions button:first-child {
+  background: #e9f6ee;
+  color: var(--primary);
+}
+
+.animal-card-actions button:first-child:hover {
+  background: #d4eddc;
+}
+
+.animal-card-actions .btn-danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.animal-card-actions .btn-danger:hover {
+  background: #fecaca;
+}
+

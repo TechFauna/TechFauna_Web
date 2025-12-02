@@ -5,86 +5,130 @@ import './SpeciesControl.css';
 
 const SpeciesControl = ({ user }) => {
   const [species, setSpecies] = useState([]);
-  const [recintos, setRecintos] = useState([]);
+  const [enclosures, setEnclosures] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [newSpecies, setNewSpecies] = useState({
-    name: '',
-    weight: '',
-    sex: '',
-    size: '',
-    recinto: '',
+    common_name: '',
+    scientific_name: '',
+    diet: '',
+    conservation_status: '',
+    description: '',
+    enclosure_id: '',
   });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Buscar perfil do usuário logado para obter organization_id
   useEffect(() => {
-    const fetchSpecies = async () => {
+    const fetchUserProfile = async () => {
       if (!user?.id) return;
       const { data, error } = await supabase
+        .from('profiles')
+        .select('id, organization_id')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setUserProfile(data);
+      }
+      setProfileLoaded(true);
+    };
+    fetchUserProfile();
+  }, [user]);
+
+  // Buscar espécies com dados do recinto (filtrado por organização)
+  useEffect(() => {
+    const fetchSpecies = async () => {
+      if (!userProfile?.organization_id) {
+        setSpecies([]); // Limpar dados se não tem organização
+        return;
+      }
+      const { data, error } = await supabase
         .from('species')
-        .select('*, recintos(nome)')
-        .eq('id_user', user.id);
+        .select('*, enclosures(id, name)')
+        .eq('organization_id', userProfile.organization_id)
+        .order('common_name', { ascending: true });
       if (!error && Array.isArray(data)) setSpecies(data);
     };
     fetchSpecies();
-  }, [user]);
+  }, [userProfile]);
 
+  // Buscar recintos (enclosures) filtrados por organização
   useEffect(() => {
-    const fetchRecintos = async () => {
-      if (!user?.id) return;
+    const fetchEnclosures = async () => {
+      if (!userProfile?.organization_id) {
+        setEnclosures([]); // Limpar dados se não tem organização
+        return;
+      }
       const { data, error } = await supabase
-        .from('recintos')
-        .select('id_recinto, nome')
-        .eq('id_user', user.id);
-      if (!error) setRecintos(data || []);
+        .from('enclosures')
+        .select('id, name')
+        .eq('organization_id', userProfile.organization_id)
+        .order('name', { ascending: true });
+      if (!error) setEnclosures(data || []);
     };
-    fetchRecintos();
-  }, [user]);
+    fetchEnclosures();
+  }, [userProfile]);
 
   const handleSubmitSpecies = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { name, weight, sex, size, recinto } = newSpecies;
-    if (!recinto) { alert('Por favor, selecione um recinto.'); setLoading(false); return; }
+    const { common_name, scientific_name, diet, conservation_status, description, enclosure_id } = newSpecies;
+
+    // Validar se usuário tem organização
+    if (!userProfile?.organization_id) {
+      alert('Você precisa estar vinculado a uma empresa para cadastrar espécies.');
+      setLoading(false);
+      return;
+    }
 
     try {
       if (editingId) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('species')
           .update({
-            name,
-            weight: parseFloat(weight),
-            sex,
-            size: parseFloat(size),
-            id_recinto: recinto,
+            common_name,
+            scientific_name: scientific_name || null,
+            diet: diet || null,
+            conservation_status: conservation_status || null,
+            description: description || null,
+            enclosure_id: enclosure_id || null,
           })
-          .eq('id', editingId)
-          .select();
+          .eq('id', editingId);
         if (error) throw error;
-        const updatedList = species.map((s) => s.id === editingId ? { ...s, name, weight, sex, size, id_recinto: recinto } : s);
-        setSpecies(updatedList);
+
+        // Recarregar para obter dados do enclosure
+        const { data: updatedData } = await supabase
+          .from('species')
+          .select('*, enclosures(id, name)')
+          .eq('id', editingId)
+          .single();
+
+        setSpecies((prev) => prev.map((s) => s.id === editingId ? updatedData : s));
         alert('Espécie atualizada com sucesso!');
       } else {
         const { data, error } = await supabase
           .from('species')
           .insert([{
-            name,
-            weight: parseFloat(weight),
-            sex,
-            size: parseFloat(size),
-            id_user: user.id,
-            id_recinto: recinto,
+            common_name,
+            scientific_name: scientific_name || null,
+            diet: diet || null,
+            conservation_status: conservation_status || null,
+            description: description || null,
+            enclosure_id: enclosure_id || null,
+            organization_id: userProfile.organization_id,
           }])
-          .select();
+          .select('*, enclosures(id, name)');
         if (error) throw error;
         if (Array.isArray(data)) setSpecies((prev) => [...prev, ...data]);
         alert('Espécie adicionada com sucesso!');
       }
 
-      setNewSpecies({ name: '', weight: '', sex: '', size: '', recinto: '' });
+      setNewSpecies({ common_name: '', scientific_name: '', diet: '', conservation_status: '', description: '', enclosure_id: '' });
       setEditingId(null);
     } catch (err) {
       console.error('Erro ao salvar espécie:', err);
-      alert('Erro ao salvar espécie.');
+      alert('Erro ao salvar espécie: ' + (err.message || 'Erro desconhecido'));
     } finally {
       setLoading(false);
     }
@@ -92,14 +136,52 @@ const SpeciesControl = ({ user }) => {
 
   const handleEdit = (specie) => {
     setNewSpecies({
-      name: specie.name,
-      weight: specie.weight,
-      sex: specie.sex,
-      size: specie.size,
-      recinto: specie.id_recinto || '',
+      common_name: specie.common_name || '',
+      scientific_name: specie.scientific_name || '',
+      diet: specie.diet || '',
+      conservation_status: specie.conservation_status || '',
+      enclosure_id: specie.enclosure_id || '',
+      description: specie.description || '',
     });
     setEditingId(specie.id);
   };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta espécie?')) return;
+
+    const { error } = await supabase.from('species').delete().eq('id', id);
+    if (error) {
+      alert('Erro ao excluir espécie.');
+      console.error(error);
+    } else {
+      setSpecies((prev) => prev.filter((s) => s.id !== id));
+      alert('Espécie excluída com sucesso!');
+    }
+  };
+
+  // Aguardar carregar o perfil
+  if (!profileLoaded) {
+    return (
+      <div className="species-control-container">
+        <h1 className="page-title">Controle de Espécies</h1>
+        <p style={{ textAlign: 'center', padding: '40px' }}>Carregando...</p>
+      </div>
+    );
+  }
+
+  // Se o usuário não está vinculado a uma empresa, mostrar mensagem
+  if (!userProfile?.organization_id) {
+    return (
+      <div className="species-control-container">
+        <h1 className="page-title">Controle de Espécies</h1>
+        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#fff3cd', borderRadius: '8px', margin: '20px auto', maxWidth: '600px' }}>
+          <h2 style={{ color: '#856404' }}>⚠️ Acesso Restrito</h2>
+          <p style={{ color: '#856404' }}>Você não está vinculado a nenhuma empresa.</p>
+          <p style={{ color: '#856404' }}>Para acessar esta funcionalidade, solicite um convite de uma empresa ou crie sua própria empresa.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="species-control-container">
@@ -107,59 +189,64 @@ const SpeciesControl = ({ user }) => {
 
       <form onSubmit={handleSubmitSpecies} className="species-form">
         <div>
-          <label>Nome</label>
+          <label>Nome comum</label>
           <input
             type="text"
-            value={newSpecies.name}
-            onChange={(e) => setNewSpecies({ ...newSpecies, name: e.target.value })}
+            placeholder="Ex: Leão"
+            value={newSpecies.common_name}
+            onChange={(e) => setNewSpecies({ ...newSpecies, common_name: e.target.value })}
             required
           />
         </div>
 
         <div>
-          <label>Peso (kg)</label>
+          <label>Nome científico</label>
           <input
-            type="number"
-            value={newSpecies.weight}
-            onChange={(e) => setNewSpecies({ ...newSpecies, weight: e.target.value })}
-            required
+            type="text"
+            placeholder="Ex: Panthera leo"
+            value={newSpecies.scientific_name}
+            onChange={(e) => setNewSpecies({ ...newSpecies, scientific_name: e.target.value })}
           />
         </div>
 
         <div>
-          <label>Sexo</label>
+          <label>Dieta</label>
           <select
-            value={newSpecies.sex}
-            onChange={(e) => setNewSpecies({ ...newSpecies, sex: e.target.value })}
-            required
+            value={newSpecies.diet}
+            onChange={(e) => setNewSpecies({ ...newSpecies, diet: e.target.value })}
           >
             <option value="">Selecione</option>
-            <option value="M">Macho</option>
-            <option value="F">Fêmea</option>
+            <option value="carnivoro">Carnívoro</option>
+            <option value="herbivoro">Herbívoro</option>
+            <option value="onivoro">Onívoro</option>
           </select>
         </div>
 
         <div>
-          <label>Tamanho (cm)</label>
-          <input
-            type="number"
-            value={newSpecies.size}
-            onChange={(e) => setNewSpecies({ ...newSpecies, size: e.target.value })}
-            required
-          />
+          <label>Status de conservação</label>
+          <select
+            value={newSpecies.conservation_status}
+            onChange={(e) => setNewSpecies({ ...newSpecies, conservation_status: e.target.value })}
+          >
+            <option value="">Selecione</option>
+            <option value="LC">Tranquilo (LC)</option>
+            <option value="LC">Pouco preocupante (LC)</option>
+            <option value="VU">Vulnerável (VU)</option>
+            <option value="EN">Em perigo (EN)</option>
+            <option value="CR">Criticamente em perigo (CR)</option>
+          </select>
         </div>
 
         <div>
           <label>Recinto</label>
           <select
-            value={newSpecies.recinto}
-            onChange={(e) => setNewSpecies({ ...newSpecies, recinto: e.target.value })}
-            required
+            value={newSpecies.enclosure_id}
+            onChange={(e) => setNewSpecies({ ...newSpecies, enclosure_id: e.target.value })}
           >
             <option value="">Selecione um recinto</option>
-            {recintos.map((recinto) => (
-              <option key={recinto.id_recinto} value={recinto.id_recinto}>
-                {recinto.nome}
+            {enclosures.map((enc) => (
+              <option key={enc.id} value={enc.id}>
+                {enc.name}
               </option>
             ))}
           </select>
@@ -168,18 +255,31 @@ const SpeciesControl = ({ user }) => {
         <button type="submit" disabled={loading}>
           {loading ? 'Salvando...' : editingId ? 'Atualizar Espécie' : 'Adicionar Espécie'}
         </button>
+
+        {editingId && (
+          <button type="button" onClick={() => {
+            setNewSpecies({ common_name: '', scientific_name: '', diet: '', conservation_status: '', description: '', enclosure_id: '' });
+            setEditingId(null);
+          }}>
+            Cancelar
+          </button>
+        )}
       </form>
 
       <h2 style={{maxWidth:980, margin:'0 auto 10px'}}>Espécies Cadastradas</h2>
       <div className="species-list">
         {species.map((specie) => (
           <div key={specie.id} className="species-card">
-            <h3>{specie.name}</h3>
-            <p>Peso: {specie.weight} kg</p>
-            <p>Sexo: {specie.sex}</p>
-            <p>Tamanho: {specie.size} cm</p>
-            <p>Recinto: {specie.recintos?.nome || 'Não atribuído'}</p>
-            <button onClick={() => handleEdit(specie)}>Editar</button>
+            <h3>{specie.common_name}</h3>
+            {specie.scientific_name && <p><em>{specie.scientific_name}</em></p>}
+            <p>Dieta: {specie.diet || 'Não informada'}</p>
+            <p>Conservação: {specie.conservation_status || 'Não informado'}</p>
+            <p>Recinto: {specie.enclosures?.name || 'Não atribuído'}</p>
+            {specie.description && <p>{specie.description}</p>}
+            <div className="species-card-actions">
+              <button onClick={() => handleEdit(specie)}>Editar</button>
+              <button onClick={() => handleDelete(specie.id)} className="btn-danger">Excluir</button>
+            </div>
           </div>
         ))}
       </div>
